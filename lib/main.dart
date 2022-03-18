@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_expense/widgets/chart.dart';
 
 import './models/transaction.dart';
 import './widgets/new_transaction.dart';
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Personal Expenses',
       theme: ThemeData(
+        errorColor: Color.fromARGB(255, 240, 18, 2),
         primarySwatch: Colors.purple,
       ),
       home: MyHomePage(),
@@ -28,24 +30,37 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransaction = [
-    Transaction(
+    /* Transaction(
         id: 't1', title: 'New Shoes', amount: 69.99, date: DateTime.now()),
     Transaction(
         id: 't2',
         title: 'Weekly Greceries',
         amount: 16.53,
-        date: DateTime.now())
+        date: DateTime.now()) */
   ];
 
-  void _addNewtransaction(String txTitle, double txAmount) {
+  List<Transaction> get _recentTransaction => _userTransaction
+      .where(
+          (tx) => tx.date.isAfter(DateTime.now().subtract(Duration(days: 7))))
+      .toList();
+
+  void _addNewtransaction(
+      String txTitle, double txAmount, DateTime chosenDate) {
     final newTx = Transaction(
-        id: DateTime.now().toString(),
-        title: txTitle,
-        amount: txAmount,
-        date: DateTime.now());
+      id: DateTime.now().toString(),
+      title: txTitle,
+      amount: txAmount,
+      date: chosenDate,
+    );
 
     setState(() {
       _userTransaction.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransaction.removeWhere((tx) => tx.id == id);
     });
   }
 
@@ -78,12 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Card(
-            child: Text('CHART!'),
-            color: Theme.of(context).primaryColor,
-            elevation: 5,
-          ),
-          TransactionList(_userTransaction),
+          Chart(_recentTransaction),
+          TransactionList(_userTransaction, _deleteTransaction),
         ],
       )),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
